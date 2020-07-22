@@ -271,14 +271,6 @@
 
 3. Type Convertion
 
-   1. ![](D:\Project\Frontend-02-Template\week02\type convertion.png)
-      1. `StringToNumber`
-      2. `NumberToString`
-      3. `Boxing`
-      4. `Unboxing`
-   2. 23
-   3. 23
-
 4. Statement
 
 5. Block
@@ -293,4 +285,3 @@
 
 1. [Reference类型]( http://dmitrysoshnikov.com/ecmascript/chapter-3-this/#-reference-type )
 2. [ES antlr]( https://github.com/antlr/grammars-v4/blob/master/javascript/ecmascript/JavaScript/ECMAScript.g4 )
-3. 
