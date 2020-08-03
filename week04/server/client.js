@@ -1,6 +1,5 @@
 const net = require("net")
-const { resolve } = require("path")
-const { rejects } = require("assert")
+const parser = require("./parser")
 
 class Request {
     constructor(options) {
@@ -33,7 +32,7 @@ class Request {
             if (connection) {
                 connection.write(this.toString())
             } else {    // 2.1 没有则根据参数创建对应的TCP连接
-                var connection = net.createConnection({
+                connection = net.createConnection({
                     host: this.host,
                     port: this.port
                 }, () => {
@@ -59,10 +58,10 @@ class Request {
     }
 
     // 2.2 
+    // HTTP-message = start-line *( header-field CRLF ) CRLF [ message-body ]
+    // 注意header-field后面的CRLF
     toString() {
-        return `${this.method} ${this.path} HTTP/1.1\r
-        ${Object.keys(this.headers).map(key => `${key}: ${this.headers[key]}`).join('\r\n')}\r\r
-        ${this.bodyText}`
+        return `${this.method} ${this.path} HTTP/1.1\r\n${Object.keys(this.headers).map(key => `${key}: ${this.headers[key]}`).join('\r\n')}\r\n\r\n${this.bodyText}`
     }
 }
 
@@ -84,11 +83,27 @@ class ResponseParser {
         this.headerValue = "";
         this.bodyParser = null;
     }
+    
+    get isFinished() {
+        return this.bodyParser && this.bodyParser.isFinished
+    }
+    
+    get response() {
+        this.statusLine.match(/HTTP\/1.1 ([0-9]+) ([\s\S]+)/)
+        return {
+            statusCode: RegExp.$1,
+            statusText: RegExp.$2,
+            headers: this.headers,
+            body: this.bodyParser.content.join('')
+        }
+    }
+
     receive(string) {
         for (let i = 0; i < string.length; i++) {
             this.receiveChar(string.charAt(i))
         }
     }
+
     receiveChar(char) {
         if(this.current === this.WAITING_STATUS_LINE) {
             if (char === '\r') {
@@ -146,14 +161,19 @@ class TrunkedBodyParser {
         this.WAITING_NEW_LINE_END = 4; 
         this.length = 0;
         this.content = [];      // 存储chunk-data
-        this.isFinished = false;
+        this._isFinished = false;
         this.current = this.WAITING_LENGTH
     }
+
+    get isFinished() {
+        return this._isFinished
+    }
+
     receiveChar(char) { // 以 " Hello World\n"为例
         if (this.current === this.WAITING_LENGTH) { 
             if (char === '\r') {    // CR
                 if (this.length === 0) {    // 最后一个chunk
-                    this.isFinished = true;
+                    this._isFinished = true;
                 }
                 this.current = this.WAITING_LENGTH_LINE_END;
             } else {    // chunk-size
@@ -199,6 +219,9 @@ void async function() {
     })
 
     let response = await request.send()
+    console.log("response：\n", response)
 
-    console.log(response)
+    let dom = parser.parseHTML(response.body)
+    
+    console.log("dom: \n", dom)
 }() 
