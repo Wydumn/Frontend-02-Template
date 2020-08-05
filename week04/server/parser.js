@@ -1,8 +1,55 @@
+const css = require('css')
+
+const EOF = Symbol("EOF")
+
 let currentToken = null
 let currentAttribute = null
 
 let stack = [{type: "document", children: []}]
+let currentTextNode = null
 
+let rules = []
+function addCssRules(text) {
+    var ast = css.parse(text)
+    rules.push(...ast.stylesheet.rules)
+    console.log(rules)
+}
+
+function match(element, selected) {
+
+}
+
+function computeCss(element) {
+    // stack --> [document, html, head, style]  一定是根style先匹配
+    var elements = stack.slice().reverse()
+    if (!element.computedStyle)
+        element.computedStyle = {}
+
+
+    for (let rule of rules) {
+        // #container #myid --> [#myid, #container]
+        var selectorParts = rule.selectors[0].split(" ").reverse()
+        if (!match(element, selectorParts[0]))
+            continue;
+
+        let matched = false;
+
+        let j = 1;
+        // elements ["html", "document"]    selectorParts [#myid, #container]
+        for (let i = 0; i < elements.length; i++ ) {    
+            if (match(elements[i], selectorParts[j])) {
+                j++;
+            }
+        }
+        if (j >= selectorParts.length)
+            matched = true
+
+        if (matched) {
+            console.log("Element", element, "matched rule", rule)
+        }
+    }
+}
+ 
 function emit(token) {
     // 栈顶元素
     let top = stack[stack.length - 1]
@@ -29,6 +76,8 @@ function emit(token) {
         top.children.push(element)
         element.parent = top;   
 
+        computeCss(element)
+
         if (!token.isSelfClosing)
             stack.push(element)
 
@@ -37,6 +86,10 @@ function emit(token) {
         if (top.tagName != token.tagName) {
             throw new Error("Tag start end doesn't match!")
         } else {
+            // 遇到style标签，添加CSS规则
+            if (top.tagName == "style") {
+                addCssRules(top.children[0].content)
+            }
             stack.pop()
         }
         currentTextNode = null
@@ -53,8 +106,6 @@ function emit(token) {
 
     
 }
-
-const EOF = Symbol("EOF")
 
 // data state
 function data(c) {
