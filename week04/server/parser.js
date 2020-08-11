@@ -2,6 +2,8 @@ const css = require('css')
 
 const EOF = Symbol("EOF")
 
+const layout = require("./layout.js")
+
 let currentToken = null
 let currentAttribute = null
 
@@ -15,20 +17,74 @@ function addCssRules(text) {
     console.log(rules)
 }
 
-function match(element, selected) {
+/**
+ * @selector 假设都是简单选择器 #id .class tag
+ * 
+ */
+function match(element, selector) {
+    if (!selector || !element.attributes)   // 文本节点
+        return false
 
+    if (selector.charAt(0) == "#") {    // id selector
+        let attr = element.attributes.filter(attr => attr.name === "id")
+        if (attr && attr.value === selector.replace("#", ''))
+            return true
+    } else if (selector.charAt(0) == ".") {
+        let attr = element.attributes.filter(attr => attr.name === "class")
+        if (attr && attr.value === selector.replace(".", ''))
+            return true
+    } else {
+        if (element.tagName === selector) {
+            return true
+        }
+    }
+
+    return false
+}
+
+/**
+ * 优先级计算   [inline, id, class, tag]
+ */
+function specificity(selector) {
+    let p = [0, 0, 0, 0]
+    let selectorParts = selector.split(" ")
+    for (var part of selectorParts) {
+        if (part.charAt(0) == "#") {
+            p[1] += 1;
+        } else if (part.charAt(0) == ".") {
+            p[2] += 1
+        } else {
+            p[3] += 1
+        }
+    }
+
+    return p
+}
+
+/**
+ * 优先级比较
+ */
+function compare(sp1, sp2) {
+    if (sp1[0] - sp2[0])
+        return sp1[0] - sp2[0]
+    if (sp1[1] - sp2[1])
+        return sp1[1] - sp2[1]
+    if (sp1[2] - sp2[2])
+        return sp1[2] - sp2[2]
+
+    return sp1[3] - sp2[3]
 }
 
 function computeCss(element) {
     // stack --> [document, html, head, style]  一定是根style先匹配
-    var elements = stack.slice().reverse()
+    let elements = stack.slice().reverse()
     if (!element.computedStyle)
         element.computedStyle = {}
 
 
     for (let rule of rules) {
         // #container #myid --> [#myid, #container]
-        var selectorParts = rule.selectors[0].split(" ").reverse()
+        let selectorParts = rule.selectors[0].split(" ").reverse()
         if (!match(element, selectorParts[0]))
             continue;
 
@@ -41,11 +97,27 @@ function computeCss(element) {
                 j++;
             }
         }
+        // 所有选择器是否都已匹配
         if (j >= selectorParts.length)
             matched = true
 
         if (matched) {
-            console.log("Element", element, "matched rule", rule)
+            let sp = specificity(rule.selectors[0])
+            let computedStyle = element.computedStyle;
+            for (let declaration of rule.declarations) {
+                if (!computedStyle[declaration.property])
+                    computedStyle[declaration.property] = {}
+
+                if (!computedStyle[declaration.property].specificity) {
+                    computedStyle[declaration.property].value = declaration.value
+                    computedStyle[declaration.property].specificity = sp
+                } else if (compare(computedStyle[declaration.property].specificity, sp) < 0) {  // 优先级高的覆盖
+                    computedStyle[declaration.property].value = declaration.value
+                    computedStyle[declaration.property].specificity = sp
+                }
+                
+            }
+            console.log("element.computedStyle", element.computedStyle)
         }
     }
 }
@@ -90,7 +162,9 @@ function emit(token) {
             if (top.tagName == "style") {
                 addCssRules(top.children[0].content)
             }
-            stack.pop()
+            // 在元素pop之前，计算该元素位置
+            layout(top);
+            stack.pop();
         }
         currentTextNode = null
     } else if (token.type == "text") {
@@ -312,6 +386,7 @@ function afterQuotedAttributeValue(c) {
 function selfClosingStartTag(c) {
     if (c == ">") {
         currentToken.isSelfClosing = true;
+        emit(currentToken)
         return data
     } else if (c == "EOF") {
 
@@ -327,5 +402,5 @@ module.exports.parseHTML = function parseHTML(html) {
         state = state(c)
     }
     state = state(EOF)
-    console.log(stack[0])
+    return stack[0]
 }
