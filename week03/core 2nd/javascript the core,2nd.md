@@ -201,3 +201,117 @@ console.log(
 
 ### Execution context
 
+为了执行JS代码，追踪它的runtime evaluation，ECMAScript规范定义了执行上下文(execution contexts)的概念。逻辑上，执行上下文是使用栈进行维护的，栈与调用栈(call-stack)的一般概念相对应。
+
+> Def. 7：Execution context：执行上下文是规范定义的工具（sepecification device），用于追踪代码的运行时求值（runtime evaluation）。
+
+有几种ECMAScript代码类型：全局代码（global code），函数代码（function code），`eval` code，和模块代码（module code）；每一种代码都是在执行上下文中求值的。不同的代码类型及其合适的对象可能影响执行上下文的结构：比如，generator函数将其generator对象保存在context中。
+
+考虑如下递归函数调用
+
+
+
+```js
+function recursive(flag) {
+
+    // Exit condition.
+    if (flag === 2) {
+        return;
+    }
+    
+    // Call recursively.
+    recursive(++flag);
+}
+
+// Go.
+recursive(0);
+```
+
+
+
+当一个函数被调用时，就创建一个新的执行上下文，并入栈，这时它就是一个活动执行上下文（active execution context）；函数返回时，它的context同时出栈。
+
+调用另一个context的context称为caller，相应地，被调的context称为callee。上例中，`recursive`函数既是caller又是callee。
+
+> Def. 8：Execution context stack：执行上下文栈是一个用来保存控制流和执行顺序的LIFO结构。
+
+对于上面的例子，有如下出栈入栈变化：
+
+
+
+
+
+如图，全局上下文永远在栈底，它是在任何其他上下文执行之前创建的。
+
+你可以在[对应章节](http://dmitrysoshnikov.com/ecmascript/chapter-1-execution-contexts/)找到关于执行上下文的更多细节。
+
+一般来说，上下文的代码是从上到下依次执行的。然而有些对象会打破栈的LIFO顺序，比如之前提到的 generators.一个generator函数可以挂起（suspend）它的running context，并在执行完毕之前从栈中移除。generator再次激活后，它的context （resumed），再次入栈：
+
+```js
+function *gen() {
+    yield 1;
+    return 2;
+}
+
+let g = gen();
+
+console.log(
+	g.next().value,	// 1
+    g.next().value, // 2
+);
+```
+
+
+
+这里的`yield`语句返回值给caller并弹出context。第二次调用`next`时，同一个context恢复，入栈。这样的上下文可能会超出创建它的caller的生命周期，所以打破了LIFO结构。
+
+​	**注意：**你可以在[这个文档](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Iterators_and_Generators)中阅读更多关于generators和iterators的内容。
+
+现在我们将讨论执行上下文中的重要组成部分。特别是，我们应该看看ECMAScript运行时是如何管理变量存储和嵌套代码块创建的作用域的。这就是词法环境（lexical environment）的一般概念，它在JS中用于存储数据，并通过闭包机制解决"[Funarg problem](https://en.wikipedia.org/wiki/Funarg_problem)".
+
+
+
+### Environment
+
+每一个执行上下文都有一个相关联的词法环境。
+
+> Def. 9：Lexical environment：词法环境是一个用来定义上下文中标识符及其值之间的关联的结构。每个环境都可以引用一个可选的父环境。
+
+所以环境是作用域中定义的变量、函数和类的存储。
+
+​	**注意：**你可以在[Essentials of Interpretation](https://www.youtube.com/playlist?list=PLGNbPb3dQJ_4WT_m3aI3T2LRf2R_FKM2k)课程对应的课节[appropriate lecture](https://www.youtube.com/watch?v=KRpYZBUkUsk)找到环境实现的例子。
+
+技术上说，环境是一对环境记录（将标识符映射到值的实际存储表）和对父环境的引用（可以为null）组成。
+
+看代码：
+
+```js
+let x = 10;
+let y = 20;
+
+function foo(z) {
+    let x = 100;
+    return x + y + z;
+}
+
+foo(30);	// 150
+```
+
+全局上下文的环境结构，`foo`函数的上下文如下：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
