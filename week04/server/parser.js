@@ -2,6 +2,8 @@ const css = require('css')
 
 const EOF = Symbol("EOF")
 
+const layout = require("./layout.js")
+
 let currentToken = null
 let currentAttribute = null
 
@@ -41,7 +43,7 @@ function match(element, selector) {
 }
 
 /**
- * 优先级计算
+ * 优先级计算   [inline, id, class, tag]
  */
 function specificity(selector) {
     let p = [0, 0, 0, 0]
@@ -109,7 +111,7 @@ function computeCss(element) {
                 if (!computedStyle[declaration.property].specificity) {
                     computedStyle[declaration.property].value = declaration.value
                     computedStyle[declaration.property].specificity = sp
-                } else if (compare(computedStyle[declaration.property].specificity) < 0) {  // 优先级高的覆盖
+                } else if (compare(computedStyle[declaration.property].specificity, sp) < 0) {  // 优先级高的覆盖
                     computedStyle[declaration.property].value = declaration.value
                     computedStyle[declaration.property].specificity = sp
                 }
@@ -160,7 +162,9 @@ function emit(token) {
             if (top.tagName == "style") {
                 addCssRules(top.children[0].content)
             }
-            stack.pop()
+            // 在元素pop之前，计算该元素位置
+            layout(top);
+            stack.pop();
         }
         currentTextNode = null
     } else if (token.type == "text") {
