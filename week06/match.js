@@ -1,39 +1,60 @@
+// 这个就是实现第五周第5节：计算选择器与元素匹配   ？？！
+// 那不就是写一个css selector的解析器吗？？！
 function match(selector, element) {
+    selector = selector.replace(/(^\s*)|(\s*$)/g, "");  // 去除字符串首尾空格
+    var rules = selectorParse(selector);
 
-    // 1. 当前元素是否匹配规则
-    const rule = selectorParse(selector)
+    let res;
+    for (let i = 0; i < rules.length; i++) {
+        res = currentMatch(rules[i], element);
 
-    // 否，规则中是否有同级元素规则
-
-    // 2.1 同级元素匹配 + ~
-
-    // 2.2 同级元素不匹配
-
-    // 3.1 当前元素子元素是否匹配   > 
-
-    // 3.2 当前元素同级元素子元素是否匹配   
-
-    // 4 列选择器   || 
-
-    // ...
-
-    // 后代是否匹配 space(不需要明确父子关系)
-
-    return true;
-}
-
-// 状态机解析selector语法
-function selectorParse(selector) {
-    let rule = {
-        current: {},
-        siblings: {},
-        children: {},
-        descendant: {},
+        if (i == 0) {   // 当前元素
+            element = res ? element.childNodes : [];
+        } else if (i === rules.length ) {
+            element = res;
+        } else {
+            element = [];
+            for (const ele of res) {
+                element.push(ele.childNodes)
+            }
+        }
     }
 
-    for (const s of selector) {
-        if (s === '*') {
-            rule.wildcard = true
+    return element.length > 0;
+}
+
+// 当前元素是否匹配
+function currentMatch(rule, elements) {
+    let matchedElements = []
+    for (const element of elements) {
+        if (rule.type == 'class' || rule.type == 'id') {
+            rule.reg == element.getAttribute(rule.type) ? matchedElements.push(element) : null
+        } else {
+            rule.reg == element.tagName ? matchedElements.push(element) : null
+        }
+    }
+
+    return matchedElements
+}
+
+
+// 只考虑类型、类、id选择器这三个简单选择器
+function selectorParse(selector) {
+
+    var rule = [];
+    var selectorParts = selector.split(' ');
+
+    let i = 0;
+    for (const selecotrPart of selectorParts) {
+        i++;
+        if (selecotrPart.chatAt(0) == '.') {    // 类选择器
+            rule.push({ type: 'class', 'reg': selecotrPart })
+        }
+        if (selecotrPart.chatAt(0) == '#') {
+            rule.push({ type: 'id', 'reg': selecotrPart })
+        }
+        if (selecotrPart.match(/^\w+$/)) {
+            rule.push({ type: 'tag', 'reg': selecotrPart })
         }
     }
 
