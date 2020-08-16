@@ -19,7 +19,7 @@ function addCssRules(text) {
 
 /**
  * @selector 假设都是简单选择器 #id .class tag
- * 
+ *
  */
 function match(element, selector) {
     if (!selector || !element.attributes)   // 文本节点
@@ -92,7 +92,7 @@ function computeCss(element) {
 
         let j = 1;
         // elements ["html", "document"]    selectorParts [#myid, #container]
-        for (let i = 0; i < elements.length; i++ ) {    
+        for (let i = 0; i < elements.length; i++ ) {
             if (match(elements[i], selectorParts[j])) {
                 j++;
             }
@@ -115,13 +115,13 @@ function computeCss(element) {
                     computedStyle[declaration.property].value = declaration.value
                     computedStyle[declaration.property].specificity = sp
                 }
-                
+
             }
             console.log("element.computedStyle", element.computedStyle)
         }
     }
 }
- 
+
 function emit(token) {
     // 栈顶元素
     let top = stack[stack.length - 1]
@@ -146,7 +146,7 @@ function emit(token) {
 
         // 双向链表
         top.children.push(element)
-        element.parent = top;   
+        element.parent = top;
 
         computeCss(element)
 
@@ -178,7 +178,7 @@ function emit(token) {
         currentTextNode.content += token.content
     }
 
-    
+
 }
 
 // data state
@@ -206,7 +206,7 @@ function tagOpen(c) {
             type: "startTag",
             tagName: ""
         }
-        
+
         return tagName(c)
     } else {    // <# <$ ...
         return ;
