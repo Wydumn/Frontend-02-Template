@@ -1,0 +1,25 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+  <title>Anonymous text interrupted by a block</title>
+  <style>
+    p {
+      display: inline;
+      border: 2px green dashed;
+    }
+    span {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    Some text
+    <p>
+      This is anonymous text before the SPAN.
+      <span>This is the content of SPAN.</span>
+      This is anonymous text after the SPAN.
+    </p>
+  </div>
+</body>
+</html>
