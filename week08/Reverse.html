@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div id="a">
+        <span>1</span>
+        <p>2</p>
+        <a>3</a>
+        <div>4</div>
+    </div>
+    <script>
+        let element = document.getElementById("a");
+        /*
+        1. Array
+        function reverseChildren(element) {
+            let children = Array.prototype.slice.call(element.childNodes)
+
+            for (let child of children) {
+                element.removeChild(child)
+            }
+
+            children.reverse();
+
+            for (let child of children) {
+                element.appendChild(child)
+            }
+        }
+
+        reverseChildren(element) */
+        /* 
+        2. childNodes   appendChild
+        function reverseChildren(event) {
+            var element = event.target;
+            var l = element.childNodes.length;
+            while (l-- > 0) {
+                debugger
+                element.appendChild(element.childNodes[l]);
+            }
+        } */
+        function reverseChildren(element) {
+            let range = new Range();
+            range.selectNodeContents(element);
+
+            let fragment = range.extractContents();
+            var l = fragment.childNodes.length;
+            while(l-- > 0) {
+                fragment.appendChild(fragment.childNodes[l]);
+            }
+            element.appendChild(fragment);
+        }
+        element.addEventListener('click', reverseChildren)
+    </script>
+</body>
+
+</html>
