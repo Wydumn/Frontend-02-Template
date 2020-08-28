@@ -1,5 +1,25 @@
-```js
-function trafficLight() {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">    
+    <title>Document</title>
+    <style>
+        #light {
+            width: 100px;
+            height: 100px;
+            border-radius: 2px solid white;
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+    <div id="light"></div>
+    <script>
+        var sheet = document.styleSheets[0];
+        var lightColor = document.styleSheets[0].cssRules[0].style.backgroundColor;
+        console.log(lightColor);
+
+        function trafficLight() {
             let toYellow = () => sheet.insertRule("#light { background-color: yellow; width: 100px; height: 100px; }", 0)
             let toRed = () => sheet.insertRule("#light { background-color: red; width: 100px; height: 100px; }", 0)
             let toGreen = () => sheet.insertRule("#light { background-color: green; width: 100px; height: 100px; }", 0)
@@ -22,5 +42,7 @@ function trafficLight() {
 
             }, 10 * 1000)
         }
-```
-
+        trafficLight();
+    </script>
+</body>
+</html>
