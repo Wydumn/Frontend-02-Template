@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        .cell {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background-color: gray;
+            border-bottom: solid 1px white;
+            border-right: solid 1px white;
+            vertical-align: middle;
+        }
+
+        #container {
+            width: 701px;
+            line-height: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
+
+    <script>
+        /*
+         *  1. 二叉堆排序实现Sorted
+         *  2. if (table[y * 100 + x]) 处优化搜索
+         */
+
+        class Sorted {
+            constructor(data, compare) {
+                this.data = data.slice();
+                this.compare = compare || ((a,b) => a - b);
+            }
+            take() {    // 每次取出最小的
+                if (!this.data.length)
+                    return;
+                let min = this.data[0];
+                let minIndex = 0;
+
+                for (let i = 0; i < this.data.length; i++) {
+                    if (this.compare(this.data[i], min) < 0) {
+                        min = this.data[i];
+                        minIndex = i;
+                    }
+                }
+
+                this.data[minIndex] = this.data[this.data.length - 1];
+                this.data.pop();
+                return min;
+            }
+            give(v) {
+                this.data.push(v);
+            }
+            get length() {
+                return this.data.length;
+            }
+        }
+
+        let map = localStorage["map"] ? JSON.parse(localStorage["map"]) : Array(10000).fill(0);
+
+        let container = document.getElementById("container");
+        for (let y = 0; y < 100; y++) {
+            for (let x = 0; x < 100; x++) {
+                let cell = document.createElement("div");
+                cell.classList.add("cell");
+
+                if (map[100 * y + x] == 1)
+                    cell.style.backgroundColor = "black";
+
+                cell.addEventListener("mousemove", () => {
+                    if (mousedown) {
+                        if (clear) {
+                            cell.style.backgroundColor = "";
+                            map[100*y + x] = 0;
+                        } else {
+                            cell.style.backgroundColor = "black";
+                            map[100*y + x] = 1;
+                        }
+                    }
+                })
+
+                container.appendChild(cell)
+            }
+        }
+
+        let mousedown = false;
+        let clear = false;
+        document.addEventListener("mousedown", e => {
+            mousedown = true;
+            clear = (e.which === 3) // 鼠标事件which为3表示右键
+        });
+        document.addEventListener("mouseup", () => mousedown = false);
+        document.addEventListener("contextmenu", e => e.preventDefault());  // 鼠标右键触发contextmenu事件
+
+        function sleep(t) {
+            return new Promise(function (resolve) {
+                setTimeout(resolve, t)
+            });
+        }
+
+        async function findPath(map, start, end) {
+            let table = Object.create(map);
+            let queue = new Sorted([start], (a, b) => distance(a)- distance(b));
+
+            async function insert(x, y, pre) {
+                if (x < 0 || x >= 100 || y < 0 || y >= 100)
+                    return;
+                if (table[y * 100 + x])
+                    return;
+
+                await sleep(50);
+                container.children[y * 100 + x].style.backgroundColor = "orange";
+                table[y * 100 + x] = pre;
+                queue.give([x, y])
+            }
+
+            function distance(point) {
+                return (point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2
+            }
+
+            while(queue.length) {
+                let [x, y] = queue.shift();
+                console.log(x, y);
+                if (x === end[0] && y === end[1]) {
+                    let path = [];
+
+                    while(x != start[0] || y != start[1]) {
+                        path.push(map[y * 100 + x]);
+                        [x, y] = table[y * 100 + x];
+                        container.children[y * 100 + x].style.backgroundColor = 'lightblue';
+                    }
+
+                    return path;
+                }
+                
+                await insert(x - 1, y, [x, y]);
+                await insert(x, y + 1, [x, y]);
+                await insert(x + 1, y, [x, y]);
+                await insert(x, y - 1, [x, y]);
+            }
+        }
+
+        /* async function path(map, start, end) {
+            var queue = [start]
+
+            async function insert(x, y) {
+                if (x < 0 || x >= 100 || y < 0 || y >= 100) // 超出地图
+                    return;
+                if (map[y * 100 + x])   //  搜过了或者有障碍
+                    return;
+
+                await sleep(30);
+                container.children[y * 100 + x].style.backgroundColor = "orange";
+                map[y * 100 + x] = 2    // 标记找过的点
+                queue.push([x, y])  //  已经搜过的点入队
+            }
+
+            while(queue.length) {
+                let [x, y] = queue.shift(); // 出队
+                console.log(x, y);
+                if (x === end[0] && y === end[1]) {
+                    return true;
+                }
+                // 逆时针遍历周围格子
+                await insert(x - 1, y);
+                await insert(x, y + 1);
+                await insert(x + 1, y);
+                await insert(x, y - 1);
+            }
+
+            return false;
+        } */
+    </script>
+</body>
+</html>
