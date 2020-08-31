@@ -25,8 +25,8 @@
     <script>
         // 1. 二维数组表示棋盘
         var pattern = [
-            0, 0, 0,
-            0, 0, 0,
+            0, 2, 0,
+            0, 1, 0,
             0, 0, 0
         ]
 
@@ -68,8 +68,6 @@
             if (check(pattern, color)) {
                 alert(color == 2 ? "⭕ is winner!" : "❌ is winner!");
             }
-            color = 3 - color;
-            show();
         }
 
         // 4.
@@ -140,28 +138,29 @@
         }
 
         function bestChoice(pattern, color) {
-            let point;
-            if (point = willWin(pattern, color)) {
+            let p;
+            if (p = willWin(pattern, color)) {
                 return {
-                    point: point,
+                    point: p,
                     result: 1
                 }
             }
 
-            let result = -1;
+            let result = -2;
+            let point = null;
             outer: for (let i = 0; i < 3; i++) {
                 for (let j = 0; j < 3; j++) {
                     if (pattern[i * 3 + j])
                         continue;
                     let tmp = clone(pattern);
                     tmp[i * 3 + j] = color;
-                    let opp = bestChoice(tmp, 3 - color);
+                    let r = bestChoice(tmp, 3 - color).result;
 
-                    if (-opp.result >= result) {
+                    if (-r > result) {
                         // r为-1时，-r为1，1 > -2, result为1；  对方为-1，最糟时，为我方最好选择
                         // r为0时， -r为0，0 < 1，result为1
                         // r为1时，-r为-1, -1 < 1, result为1
-                        result = -opp.result;
+                        result = -r;
                         point = [j, i];
                     }
                     if (result == 1)
