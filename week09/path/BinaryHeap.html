@@ -24,41 +24,12 @@
     <div id="container"></div>
     <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
 
+    <script src="MinHeap.js"></script>
     <script>
         /*
          *  1. 二叉堆排序实现Sorted
          *  2. if (table[y * 100 + x]) 处优化搜索
          */
-
-        class Sorted {
-            constructor(data, compare) {
-                this.data = data.slice();
-                this.compare = compare || ((a,b) => a - b);
-            }
-            take() {    // 每次取出最小的
-                if (!this.data.length)
-                    return;
-                let min = this.data[0];
-                let minIndex = 0;
-
-                for (let i = 0; i < this.data.length; i++) {
-                    if (this.compare(this.data[i], min) < 0) {
-                        min = this.data[i];
-                        minIndex = i;
-                    }
-                }
-
-                this.data[minIndex] = this.data[this.data.length - 1];
-                this.data.pop();
-                return min;
-            }
-            give(v) {
-                this.data.push(v);
-            }
-            get length() {
-                return this.data.length;
-            }
-        }
 
         let map = localStorage["map"] ? JSON.parse(localStorage["map"]) : Array(10000).fill(0);
 
@@ -104,7 +75,7 @@
 
         async function findPath(map, start, end) {
             let table = Object.create(map);
-            let queue = new Sorted([start], (a, b) => distance(a)- distance(b));
+            let queue = new MinHeap([start], (a, b) => distance(a)- distance(b));
 
             async function insert(x, y, pre) {
                 if (x < 0 || x >= 100 || y < 0 || y >= 100)
@@ -115,15 +86,15 @@
                 await sleep(50);
                 container.children[y * 100 + x].style.backgroundColor = "orange";
                 table[y * 100 + x] = pre;
-                queue.give([x, y])
+                queue.insert([x, y])
             }
 
             function distance(point) {
                 return (point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2
             }
 
-            while(queue.length) {
-                let [x, y] = queue.take();
+            while(queue.size) {
+                let [x, y] = queue.extract();
                 console.log(x, y);
                 if (x === end[0] && y === end[1]) {
                     let path = [];
@@ -143,37 +114,6 @@
                 await insert(x, y - 1, [x, y]);
             }
         }
-
-        /* async function path(map, start, end) {
-            var queue = [start]
-
-            async function insert(x, y) {
-                if (x < 0 || x >= 100 || y < 0 || y >= 100) // 超出地图
-                    return;
-                if (map[y * 100 + x])   //  搜过了或者有障碍
-                    return;
-
-                await sleep(30);
-                container.children[y * 100 + x].style.backgroundColor = "orange";
-                map[y * 100 + x] = 2    // 标记找过的点
-                queue.push([x, y])  //  已经搜过的点入队
-            }
-
-            while(queue.length) {
-                let [x, y] = queue.shift(); // 出队
-                console.log(x, y);
-                if (x === end[0] && y === end[1]) {
-                    return true;
-                }
-                // 逆时针遍历周围格子
-                await insert(x - 1, y);
-                await insert(x, y + 1);
-                await insert(x + 1, y);
-                await insert(x, y - 1);
-            }
-
-            return false;
-        } */
     </script>
 </body>
 </html>
