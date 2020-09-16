@@ -49,7 +49,10 @@ function effect(callback) {
 }
 
 function reactive(object) {
-    return new Proxy(object, {
+    if (reactivities.has(object))
+        return reactivities.get(object)
+
+    let proxy = new Proxy(object, {
         set(obj, prop, val) {
             obj[prop] = val;
             if (callbacks.get(obj) && callbacks.get(obj).get(prop)) {
@@ -67,8 +70,11 @@ function reactive(object) {
 
             return obj[prop]
         }
-    }) 
+    })
+    
+    reactivities.set(object, proxy);
+
+    return proxy;
 }
 
 p.a.x = "jaja";
-console.log(p.a.x, p);
