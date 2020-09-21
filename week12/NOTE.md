@@ -273,3 +273,33 @@ this.root.addEventListener("mousedown", event => {
     this.root.addEventListener("mouseup", up)
 })
 ```
+
+循环拖动
+```js
+let moveover = event =>{
+    let x = event.clientX - startX;
+
+    let current = position - ((x - x % 500) / 500);
+
+    for(let offset of [-1, 0, 1]){
+        let pos = current + offset;
+        pos = (pos + children.length) % children.length;
+        children[pos].style.transition = "none";
+        children[pos].style.transform = `translateX(${- pos*500 + offset * 500 + x % 500}px)`
+    }
+    event.stopPropagation()
+}
+
+let up = event => {
+    let x = event.clientX - startX;
+    position = position - Math.round(x/500);
+    for(let offset of [0,- Math.sign(Math.round(x / 500)- x + 250 * Math.sign(x))]){
+        let pos = position + offset;
+        pos = (pos + children.length) % children.length;
+        children[pos].style.transition = "";
+        children[pos].style.transform = `translateX(${- pos*500 + offset * 500 }px)`
+    }
+    this.root.removeEventListener("mousemove", moveover)
+    this.root.removeEventListener("mouseup", up)
+}
+```
