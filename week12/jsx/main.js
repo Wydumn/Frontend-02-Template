@@ -1,85 +1,7 @@
 import {Component, createElement} from './framework'
+import Carousel from './Carousel'
+import {Animation, Timeline} from './animation'
 
-class Carousel extends Component{
-    constructor() {
-        super();
-        this.attributes = Object.create(null)
-    }
-    setAttribute(name, value) {
-        this.attributes[name] = value
-    }
-    render() {
-        this.root = document.createElement("div")
-        this.root.classList.add('carousel')
-        for (let item of this.attributes.src) {
-            let child = document.createElement('div')
-            child.style.backgroundImage = `url(${item})`
-            this.root.appendChild(child)
-        }
-
-        let position = 0;
-
-        this.root.addEventListener("mousedown", event => {
-            let children = this.root.children;
-            let startX = event.clientX;
-
-            let moveover = event =>{
-                let x = event.clientX - startX;
-
-                let current = position - ((x - x % 500) / 500);
-
-                for(let offset of [-1, 0, 1]){
-                    let pos = current + offset;
-                    pos = (pos + children.length) % children.length;
-                    children[pos].style.transition = "none";
-                    children[pos].style.transform = `translateX(${- pos*500 + offset * 500 + x % 500}px)`
-                }
-                event.stopPropagation()
-            }
-
-            let up = event => {
-                let x = event.clientX - startX;
-                position = position - Math.round(x/500);
-                for(let offset of [0,- Math.sign(Math.round(x / 500)- x + 250 * Math.sign(x))]){
-                    let pos = position + offset;
-                    pos = (pos + children.length) % children.length;
-                    children[pos].style.transition = "";
-                    children[pos].style.transform = `translateX(${- pos*500 + offset * 500 }px)`
-                }
-                this.root.removeEventListener("mousemove", moveover)
-                this.root.removeEventListener("mouseup", up)
-            }
-
-            this.root.addEventListener("mousemove", moveover)
-            this.root.addEventListener("mouseup", up)
-        })
-
-        /* let currentIndex = 0;
-        setInterval(() => {
-            let children = this.root.children;
-            let nextIndex = (currentIndex + 1) % children.length;
-
-            let current = children[currentIndex],
-                next = children[nextIndex];
-
-            next.style.transition = "none"  // 关闭动画效果
-            next.style.transform = `translateX(${-nextIndex * 100 + 100}%)`
-
-            setTimeout(() => {
-                next.style.transition = ""
-                current.style.transform = `translateX(${-100 -currentIndex * 100}%)`
-                
-                next.style.transform = `translateX(${-nextIndex * 100}%)`
-                currentIndex = nextIndex;
-            }, 16)  // 一帧动画播放完后，恢复next的动画效果(css中设置的)
-        }, 3000) */
-
-        return this.root
-    }
-    mountTo(parent) {
-        parent.appendChild(this.render())
-    }
-}
 
 
 let imgs = [
@@ -91,5 +13,11 @@ let imgs = [
 ]
 
 let a = <Carousel src={imgs} />
-
 a.mountTo(document.body);
+
+let tl = new Timeline();
+window.tl = tl;
+window.animation = new Animation({ set a(v) { console.log(v) }}, "a", 0, 100, 1000, null)
+// tl.add(new Animation({ set a(v) { console.log(a) }}, "a", 0, 100, 1000, null));
+tl.start();
+
