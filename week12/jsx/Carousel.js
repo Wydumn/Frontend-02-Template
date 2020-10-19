@@ -18,7 +18,7 @@ export default class Carousel extends Component{
         }
 
         let position = 0;
-
+/*
         this.root.addEventListener("mousedown", event => {
             let children = this.root.children;
             let startX = event.clientX;
@@ -52,7 +52,7 @@ export default class Carousel extends Component{
 
             this.root.addEventListener("mousemove", moveover)
             this.root.addEventListener("mouseup", up)
-        })
+        })*/
 
         return this.root
     }
