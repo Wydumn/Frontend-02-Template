@@ -1,11 +1,5 @@
 /.history
-/week12/jsx/node_modules
-/week12/jsx/img
-/week15/node_modules
-/week15/img
-/week15/dist
-/week15/.vscode
-/week16/demo/node_modules
-/week16/generator-vue/node_modules
-/week16/toolchain/node_modules
-/week16/vue-demo/node_modules
+node_modules/
+dist/
+.vscode/
+img/
