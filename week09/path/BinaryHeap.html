@@ -80,7 +80,7 @@
             async function insert(x, y, pre) {
                 if (x < 0 || x >= 100 || y < 0 || y >= 100)
                     return;
-                if (table[y * 100 + x])
+                if (table[y * 100 + x]) // 有障碍或访问过了
                     return;
 
                 await sleep(50);
