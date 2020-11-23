@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        // 多个要监听的对象，但每个对象不是所有属性都要监听，所以应该有一个数据结构，将reactivity对象和该对象要监听的属性绑定起来
+        // WeakMap就是这样的数据结构，key只能为对象，值是任意类型
+        // 当然，这里的值应该是依赖项，也就是要监听属性的所属对象的depsMap
+        const targetMap = new WeakMap();    // store dependencies for each reactive object
+
+        function track(target, key) {
+            let depsMap = targetMap.get(target)
+            if (!depsMap) {
+                targetMap.set(target, (depsMap = new Map()))
+            }
+
+            let dep = depsMap.get(key)
+            if (!dep) {
+                depsMap.set(key, (dep = new Set()))
+            }
+            dep.add(effect)
+        }
+
+        function trigger(target, key) {
+            const depsMap = targetMap.get(target);
+            if (!depsMap) {
+                return;
+            }
+            let dep = depsMap.get(key)
+            if (dep) {
+                dep.forEach(effect => effect())
+            }
+        };
+    </script>
+</body>
+</html>

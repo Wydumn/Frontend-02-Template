@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        /* 
+            total的计算“依赖于”price和quantity，所以，我们称price、quantity为total的dependency，
+            在上面的例子中，total的更新要通过effect的执行，所以total作为effect(price, quantity)函数执行的"effect"，depend on function effect.
+
+            定义： A dependency which is a set of effects that should get re-run when value changes.
+
+            通常，要更新的是一个对象，对象有多个属性，而每一个属性都有自己的dependencies，如何存储？
+            const depsMap = new Map(prop, [dependencies]);
+         */
+        const depsMap = new Map()
+
+        function track(key) {
+            let dep = depsMap.get(key)
+            if (!dep) {
+                depsMap.set(key, (dep = new Set())) // Map(prop, effects)
+            }
+
+            dep.add(effect)
+        }
+
+        function trigger(key) {
+            let dep = depsMap.get(key)
+            if (dep) {
+                dep.forEach(effect => effect())
+            }
+        }
+
+        // 有多个要监听的对象，也就是有多个reactivity对象怎么办？？
+    </script>
+</body>
+</html>

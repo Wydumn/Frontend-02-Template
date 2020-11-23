@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">    
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        /* version 1
+
+        let price = 5;
+        let quantity = 2;
+        let total = price * quantity
+
+        console.log(`total is ${total}`)
+ 
+        price = 20
+        console.log(`total is ${total}`) */
+
+        // total并没有实时更新，
+        /*
+
+            我们要实时更新total，就应该 监听 price的变化
+            price变化时，再执行一遍total的计算
+
+            1. 显然，上面的 total 作为一个值，不可能 “执行”
+                作为一个函数还差不多
+                const total = (price, quantity) => price * quantity
+            
+            2. track() 保存计算total的代码
+            3. effect() 执行计算 total的代码
+            4. trigger() 执行所有保存的计算逻辑
+
+         */
+
+        let price = 5, quantity = 2, total = 0;
+
+        // [1]
+        let effect = () => { total = price * quantity }   
+
+        // [2]
+        let dep = new Set()
+        function track() { dep.add(effect) }
+
+        // [4]
+        function trigger() { 
+            dep.forEach( effect => effect())    // [3]
+        }
+
+        track()
+        effect()
+    </script>
+</body>
+</html>

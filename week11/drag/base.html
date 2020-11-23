@@ -1,0 +1,15 @@
+<script>
+    let dragable = document.getElementById("dragable");
+    dragable.addEventListener("mousedown", function (e) {
+      // 注意： 拖拽事件要在鼠标按下时再触发
+      let up = () => {
+        document.removeEventListener("mouseover", move)
+        document.removeEventListener("mouseup", up)
+      }
+      let move = (event) => {
+        console.log(event)
+      }
+      document.addEventListener("mouseover", move)
+      document.addEventListener("mouseup", up)
+    })
+  </script>
